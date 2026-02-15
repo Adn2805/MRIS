@@ -47,7 +47,8 @@ def apply_threshold(
     adj_matrix[mask] = 0.0
 
     # Remove self-loops
-    np.fill_diagonal(adj_matrix.values, 0.0)
+    diag = adj_matrix.to_numpy(copy=False)
+    np.fill_diagonal(diag, 0.0)
 
     edge_count = (adj_matrix != 0).sum().sum() // 2  # Symmetric, so divide by 2
     logger.info(
