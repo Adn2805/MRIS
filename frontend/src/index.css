@@ -1520,9 +1520,191 @@ body {
     overflow-y: auto;
 }
 
+/* ── Sidebar Wrapper (insights + analytics stacked) ──────── */
+.sidebar-wrapper {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+/* ── Tab Empty Hint ────────────────────────────────────────── */
+.tab-empty-hint {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 60px 24px;
+    color: var(--text-muted);
+    gap: 10px;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.tab-empty-hint h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.tab-empty-hint p {
+    font-size: 0.82rem;
+    line-height: 1.5;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+.tab-empty-hint strong {
+    color: var(--text-primary);
+}
+
+/* ── Portfolio Explainer ───────────────────────────────────── */
+.portfolio-explainer {
+    padding: 12px 14px;
+    background: rgba(0, 230, 255, 0.04);
+    border: 1px solid rgba(0, 230, 255, 0.12);
+    border-radius: var(--radius-md);
+    margin-bottom: 14px;
+}
+
+.portfolio-explainer p {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin: 0 0 6px;
+}
+
+.portfolio-explainer p:last-child {
+    margin: 0;
+}
+
+.portfolio-explainer strong {
+    color: var(--text-primary);
+}
+
+.portfolio-explainer code {
+    background: rgba(255, 255, 255, 0.08);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 0.78rem;
+    color: var(--accent-cyan);
+}
+
+.section-explain {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin: 0 0 8px;
+}
+
+/* ── Collapsible Details ───────────────────────────────────── */
+details.corr-details,
+details.sector-details {
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+details.corr-details summary,
+details.sector-details summary {
+    padding: 10px 14px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.02);
+    transition: background var(--duration-fast);
+    list-style: none;
+}
+
+details.corr-details summary::-webkit-details-marker,
+details.sector-details summary::-webkit-details-marker {
+    display: none;
+}
+
+details.corr-details summary::before,
+details.sector-details summary::before {
+    content: '▸ ';
+    color: var(--text-muted);
+}
+
+details[open].corr-details summary::before,
+details[open].sector-details summary::before {
+    content: '▾ ';
+}
+
+details.corr-details summary:hover,
+details.sector-details summary:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+details.corr-details>*:not(summary),
+details.sector-details>*:not(summary) {
+    padding: 12px 14px;
+}
+
+/* ── Heatmap Explanation ───────────────────────────────────── */
+.heatmap-subtitle {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin: 2px 0 0;
+    line-height: 1.4;
+    font-weight: 400;
+}
+
+.heatmap-explanation {
+    padding: 14px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--glass-border);
+    margin-bottom: 14px;
+}
+
+.heatmap-explanation h4 {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    margin: 0 0 8px;
+}
+
+.heatmap-explanation ul {
+    margin: 0;
+    padding: 0 0 0 16px;
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.heatmap-explanation li {
+    margin-bottom: 4px;
+}
+
+.heatmap-explanation strong {
+    color: var(--text-primary);
+}
+
+/* Legend items */
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+}
+
+.legend-swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
 /* ── Insights Panel ────────────────────────────────────────── */
 .insights-panel {
-    margin: 0 var(--space-md) var(--space-xs);
+    margin: 0;
+    margin-bottom: 2px;
     background: var(--glass-bg);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-md);

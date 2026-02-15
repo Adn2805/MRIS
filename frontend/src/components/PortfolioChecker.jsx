@@ -29,7 +29,7 @@ export default function PortfolioChecker() {
 
     const checkPortfolio = useCallback(async () => {
         if (tickers.length < 2) {
-            setError('Add at least 2 tickers to check');
+            setError('Add at least 2 stocks to check');
             return;
         }
         setLoading(true);
@@ -54,9 +54,9 @@ export default function PortfolioChecker() {
     }, [tickers, period]);
 
     const getRiskIcon = (level) => {
-        if (level === 'Low Risk') return <ShieldCheck size={20} />;
-        if (level === 'Moderate Risk') return <ShieldAlert size={20} />;
-        return <ShieldX size={20} />;
+        if (level === 'Low Risk') return <ShieldCheck size={18} />;
+        if (level === 'Moderate Risk') return <ShieldAlert size={18} />;
+        return <ShieldX size={18} />;
     };
 
     const getRiskClass = (level) => {
@@ -80,7 +80,7 @@ export default function PortfolioChecker() {
         );
     };
 
-    // Common Indian tickers for quick-add
+    // Popular stocks for quick-add
     const quickTickers = [
         'RELIANCE.NS', 'TCS.NS', 'HDFCBANK.NS', 'INFY.NS', 'ICICIBANK.NS',
         'ITC.NS', 'SBIN.NS', 'BAJFINANCE.NS', 'SUNPHARMA.NS', 'TATAMOTORS.NS',
@@ -90,12 +90,20 @@ export default function PortfolioChecker() {
         <div className="portfolio-checker">
             <div className="portfolio-header">
                 <Briefcase size={18} />
-                <h3>Portfolio Risk Checker</h3>
+                <h3>Check Your Portfolio</h3>
             </div>
-            <p className="portfolio-desc">
-                Add the stocks you own (or plan to buy) to check how diversified your portfolio is.
-                Use Yahoo Finance tickers — add <code>.NS</code> for Indian stocks (e.g., RELIANCE.NS).
-            </p>
+
+            <div className="portfolio-explainer">
+                <p>
+                    <strong>What is this?</strong> Add the stocks you own (or plan to buy) and we'll tell you how
+                    well-diversified your portfolio is. A good portfolio has stocks that don't all move
+                    in the same direction.
+                </p>
+                <p className="ticker-help">
+                    <strong>Tip:</strong> For Indian stocks, add <code>.NS</code> at the end (e.g. <code>RELIANCE.NS</code>).
+                    For US stocks, just use the ticker (e.g. <code>AAPL</code>).
+                </p>
+            </div>
 
             {/* Quick-add chips */}
             <div className="quick-tickers">
@@ -114,7 +122,7 @@ export default function PortfolioChecker() {
                     value={inputVal}
                     onChange={e => setInputVal(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder="Type ticker and press Enter..."
+                    placeholder="Type a stock ticker and press Enter..."
                     className="portfolio-input"
                 />
                 <button className="portfolio-add-btn" onClick={addTicker} disabled={!inputVal.trim()}>
@@ -146,7 +154,7 @@ export default function PortfolioChecker() {
                 onClick={checkPortfolio}
                 disabled={loading || tickers.length < 2}
             >
-                {loading ? <><Loader2 size={16} className="spin" /> Analyzing...</> : <><Search size={16} /> Check Portfolio Risk</>}
+                {loading ? <><Loader2 size={16} className="spin" /> Checking...</> : <><Search size={16} /> Check My Portfolio</>}
             </button>
 
             {error && <div className="portfolio-error">{error}</div>}
@@ -154,7 +162,7 @@ export default function PortfolioChecker() {
             {/* Results */}
             {result && (
                 <div className="portfolio-results">
-                    {/* Score card */}
+                    {/* Score card — plain language */}
                     <div className="score-card">
                         <div className="score-circle" style={{
                             '--score': result.diversification_score,
@@ -176,14 +184,33 @@ export default function PortfolioChecker() {
                     {/* Missing tickers */}
                     {result.tickers_missing.length > 0 && (
                         <div className="missing-alert">
-                            ⚠️ Tickers not found: {result.tickers_missing.join(', ')}
+                            ⚠ Could not find: {result.tickers_missing.join(', ')}. Check the ticker spelling.
                         </div>
                     )}
 
-                    {/* Correlation matrix */}
-                    <div className="corr-matrix-section">
-                        <h4>Correlation Matrix</h4>
-                        <p className="matrix-hint">Higher values (red) mean stocks move together. Lower (green) = better diversification.</p>
+                    {/* Strongest stock pairs */}
+                    <div className="correlations-list">
+                        <h4>How Your Stocks Relate</h4>
+                        <p className="section-explain">Bars show how much two stocks move together. Long red bars = they move the same way (less diversified).</p>
+                        {result.correlations.slice(0, 5).map((c, i) => (
+                            <div key={i} className="corr-item">
+                                <span className="corr-pair">{c.ticker1} ↔ {c.ticker2}</span>
+                                <span className="corr-bar-wrap">
+                                    <span className="corr-bar" style={{
+                                        width: `${Math.abs(c.correlation) * 100}%`,
+                                        backgroundColor: getCorrelationColor(c.correlation)
+                                    }}></span>
+                                </span>
+                                <span className="corr-val" style={{ color: getCorrelationColor(c.correlation) }}>
+                                    {c.correlation.toFixed(2)}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Full correlation matrix — collapsible */}
+                    <details className="corr-details">
+                        <summary>View full correlation table</summary>
                         <div className="corr-matrix-scroll">
                             <table className="corr-matrix">
                                 <thead>
@@ -209,30 +236,11 @@ export default function PortfolioChecker() {
                                 </tbody>
                             </table>
                         </div>
-                    </div>
-
-                    {/* Top correlations list */}
-                    <div className="correlations-list">
-                        <h4>Strongest Correlations</h4>
-                        {result.correlations.slice(0, 5).map((c, i) => (
-                            <div key={i} className="corr-item">
-                                <span className="corr-pair">{c.ticker1} ↔ {c.ticker2}</span>
-                                <span className="corr-bar-wrap">
-                                    <span className="corr-bar" style={{
-                                        width: `${Math.abs(c.correlation) * 100}%`,
-                                        backgroundColor: getCorrelationColor(c.correlation)
-                                    }}></span>
-                                </span>
-                                <span className="corr-val" style={{ color: getCorrelationColor(c.correlation) }}>
-                                    {c.correlation.toFixed(3)}
-                                </span>
-                            </div>
-                        ))}
-                    </div>
+                    </details>
 
                     {/* Suggestions */}
                     <div className="suggestions-list">
-                        <h4>Suggestions</h4>
+                        <h4>What You Can Do</h4>
                         {result.suggestions.map((s, i) => (
                             <div key={i} className="suggestion-item">
                                 {renderText(s)}

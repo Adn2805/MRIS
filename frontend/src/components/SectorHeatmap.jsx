@@ -8,7 +8,7 @@ export default function SectorHeatmap({ sectorData }) {
         return (
             <div className="sector-heatmap empty-heatmap">
                 <Grid3x3 size={24} />
-                <p>Sector heatmap will appear after running an analysis.</p>
+                <p>Not enough sector data available for this index.</p>
             </div>
         );
     }
@@ -16,7 +16,6 @@ export default function SectorHeatmap({ sectorData }) {
     const { sectors, matrix, sector_stocks } = sectorData;
 
     const getColor = (val) => {
-        // -1 (blue) to 0 (gray) to 1 (red/orange)
         const v = Math.max(-1, Math.min(1, val));
         if (v >= 0) {
             const r = Math.round(255);
@@ -35,23 +34,40 @@ export default function SectorHeatmap({ sectorData }) {
         return Math.abs(val) > 0.5 ? '#fff' : '#222';
     };
 
+    const getMeaning = (val) => {
+        if (val > 0.5) return 'Move together strongly';
+        if (val > 0.2) return 'Somewhat connected';
+        if (val > -0.2) return 'Move independently';
+        return 'Move in opposite directions';
+    };
+
     return (
         <div className="sector-heatmap">
             <div className="heatmap-header">
                 <Grid3x3 size={18} />
-                <h3>Sector Correlation Heatmap</h3>
+                <div>
+                    <h3>How Do Sectors Compare?</h3>
+                    <p className="heatmap-subtitle">
+                        This table shows whether different market sectors (like Banking, IT, Pharma)
+                        tend to move in the same direction or independently.
+                    </p>
+                </div>
             </div>
-            <p className="heatmap-desc">
-                Shows how different market sectors correlate with each other.
-                <strong> Red = move together</strong>, <strong>Blue = move apart</strong>,
-                <strong> Gray = independent</strong>.
-            </p>
 
-            {/* Legend */}
+            {/* Simple legend */}
             <div className="heatmap-legend">
-                <span className="legend-label">-1.0 (Opposite)</span>
-                <div className="legend-gradient"></div>
-                <span className="legend-label">+1.0 (Together)</span>
+                <div className="legend-item">
+                    <span className="legend-swatch" style={{ background: 'rgb(255, 75, 0)' }}></span>
+                    <span>Move together</span>
+                </div>
+                <div className="legend-item">
+                    <span className="legend-swatch" style={{ background: 'rgb(200, 200, 200)' }}></span>
+                    <span>Independent</span>
+                </div>
+                <div className="legend-item">
+                    <span className="legend-swatch" style={{ background: 'rgb(0, 100, 255)' }}></span>
+                    <span>Move apart</span>
+                </div>
             </div>
 
             {/* Heatmap grid */}
@@ -85,27 +101,9 @@ export default function SectorHeatmap({ sectorData }) {
                                             }}
                                             onMouseEnter={() => setHoveredCell({ row: i, col: j })}
                                             onMouseLeave={() => setHoveredCell(null)}
+                                            title={`${rowSector} vs ${colSector}: ${val.toFixed(2)} — ${getMeaning(val)}`}
                                         >
                                             {val.toFixed(2)}
-                                            {isHovered && (
-                                                <div className="heatmap-tooltip">
-                                                    <strong>{rowSector} × {colSector}</strong>
-                                                    <br />Correlation: {val.toFixed(3)}
-                                                    <br />
-                                                    {i === j ? (
-                                                        <span className="tooltip-detail">
-                                                            Stocks: {(sector_stocks[rowSector] || []).join(', ')}
-                                                        </span>
-                                                    ) : (
-                                                        <span className="tooltip-detail">
-                                                            {val > 0.5 ? 'Strong positive — move together' :
-                                                                val > 0.2 ? 'Moderate correlation' :
-                                                                    val > -0.2 ? 'Weak / independent' :
-                                                                        'Negative — tend to move apart'}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            )}
                                         </td>
                                     );
                                 })}
@@ -115,9 +113,19 @@ export default function SectorHeatmap({ sectorData }) {
                 </table>
             </div>
 
+            {/* What does this mean? */}
+            <div className="heatmap-explanation">
+                <h4><Info size={13} /> What does this mean?</h4>
+                <ul>
+                    <li><strong>Red/orange cells</strong> — These sectors tend to rise and fall together. Investing in both won't give you much protection.</li>
+                    <li><strong>Gray cells</strong> — These sectors move independently. Good for diversification.</li>
+                    <li><strong>Blue cells</strong> — These sectors tend to move in opposite directions. Great for balancing risk.</li>
+                </ul>
+            </div>
+
             {/* Sector stock lists */}
-            <div className="sector-lists">
-                <h4><Info size={14} /> Sector Composition</h4>
+            <details className="sector-details">
+                <summary>Which stocks are in each sector?</summary>
                 <div className="sector-chips-grid">
                     {sectors.map(s => (
                         <div key={s} className="sector-group">
@@ -128,7 +136,7 @@ export default function SectorHeatmap({ sectorData }) {
                         </div>
                     ))}
                 </div>
-            </div>
+            </details>
         </div>
     );
 }

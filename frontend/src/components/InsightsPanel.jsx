@@ -10,7 +10,7 @@ const PRIORITY_CONFIG = {
 };
 
 export default function InsightsPanel({ insights }) {
-    const [expanded, setExpanded] = useState(false); // collapsed by default
+    const [expanded, setExpanded] = useState(false);
 
     if (!insights || insights.length === 0) return null;
 
@@ -32,16 +32,11 @@ export default function InsightsPanel({ insights }) {
         <div className="insights-panel">
             <div className="insights-header" onClick={() => setExpanded(!expanded)}>
                 <div className="insights-title">
-                    <Lightbulb size={14} />
-                    <span>Smart Insights</span>
+                    <Lightbulb size={13} />
+                    <span>Key Findings</span>
                     <span className="insight-count">{parsed.length}</span>
                 </div>
-                <div className="insights-preview">
-                    {!expanded && parsed.length > 0 && (
-                        <span className="insight-preview-text">{renderText(parsed[0].text).slice(0, 2)}</span>
-                    )}
-                    {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                </div>
+                {expanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
             </div>
 
             {expanded && (
