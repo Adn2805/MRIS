@@ -55,12 +55,6 @@ class InsightItem(BaseModel):
     text: str = Field(..., description="Insight text with optional **bold** markers")
 
 
-class SectorHeatmapData(BaseModel):
-    sectors: list[str]
-    matrix: list[list[float]]
-    sector_stocks: dict[str, list[str]]
-
-
 class GraphResponse(BaseModel):
     nodes: list[NodeData]
     edges: list[EdgeData]
@@ -73,7 +67,6 @@ class GraphResponse(BaseModel):
     threshold: float
     timestamp: str = Field(..., description="ISO timestamp of when the analysis was computed")
     insights: list[InsightItem] = Field(default_factory=list, description="Auto-generated market insights")
-    sector_heatmap: Optional[SectorHeatmapData] = None
 
 
 class IndexInfo(BaseModel):

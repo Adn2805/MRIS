@@ -1,21 +1,20 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Header from './components/Header';
 import ControlPanel from './components/ControlPanel';
 import NetworkGraph from './components/NetworkGraph';
 import NodeInspector from './components/NodeInspector';
 import AnalyticsSidebar from './components/AnalyticsSidebar';
 import InsightsPanel from './components/InsightsPanel';
-import SectorHeatmap from './components/SectorHeatmap';
 import PortfolioChecker from './components/PortfolioChecker';
 import LoadingOverlay from './components/LoadingOverlay';
 import GuidedTour from './components/GuidedTour';
 import { useAnalysis } from './hooks/useAnalysis';
-import { Network, AlertCircle, HelpCircle, Share2, Grid3x3, Briefcase } from 'lucide-react';
+import { Network, AlertCircle, HelpCircle, Share2, Briefcase } from 'lucide-react';
 
 export default function App() {
     const {
-        data, loading, error, indices, isLive, lastUpdated,
-        fetchIndices, analyze, startLive, stopLive,
+        data, loading, error, indices,
+        fetchIndices, analyze,
     } = useAnalysis();
 
     const [selectedIndex, setSelectedIndex] = useState('');
@@ -28,20 +27,8 @@ export default function App() {
     const [showTour, setShowTour] = useState(() => !localStorage.getItem('mris_tour_done'));
     const [activeTab, setActiveTab] = useState('network');
 
-    // Keep lastUpdated ticking for the header display
-    const [, setTick] = useState(0);
-    useEffect(() => {
-        if (!isLive) return;
-        const iv = setInterval(() => setTick((t) => t + 1), 5000);
-        return () => clearInterval(iv);
-    }, [isLive]);
+    useEffect(() => { fetchIndices(); }, [fetchIndices]);
 
-    // Fetch available indices on mount
-    useEffect(() => {
-        fetchIndices();
-    }, [fetchIndices]);
-
-    // Default to first index once loaded
     useEffect(() => {
         if (indices.length > 0 && !selectedIndex) {
             setSelectedIndex(indices[0].name);
@@ -60,43 +47,9 @@ export default function App() {
         });
     }, [selectedIndex, period, threshold, startDate, endDate, analyze]);
 
-    const handleStartLive = useCallback(() => {
-        if (!selectedIndex) return;
-        setSelectedNode(null);
-        startLive({
-            index: selectedIndex,
-            period,
-            threshold,
-            startDate: startDate || undefined,
-            endDate: endDate || undefined,
-            interval: 120,
-        });
-    }, [selectedIndex, period, threshold, startDate, endDate, startLive]);
-
     const handleSelectNode = useCallback((node) => {
         setSelectedNode(node);
     }, []);
-
-    const TAB_CONFIG = [
-        {
-            id: 'network',
-            icon: <Share2 size={14} />,
-            label: 'Stock Map',
-            hint: 'See which stocks move together',
-        },
-        {
-            id: 'heatmap',
-            icon: <Grid3x3 size={14} />,
-            label: 'Sectors',
-            hint: 'Compare industry sectors',
-        },
-        {
-            id: 'portfolio',
-            icon: <Briefcase size={14} />,
-            label: 'My Portfolio',
-            hint: 'Check your stock mix',
-        },
-    ];
 
     return (
         <div className="app-layout">
@@ -104,7 +57,7 @@ export default function App() {
 
             {showTour && <GuidedTour onClose={() => setShowTour(false)} />}
 
-            <Header isLive={isLive} lastUpdated={lastUpdated} onShowGuide={() => setShowTour(true)} />
+            <Header onShowGuide={() => setShowTour(true)} />
 
             <ControlPanel
                 indices={indices}
@@ -119,10 +72,7 @@ export default function App() {
                 endDate={endDate}
                 setEndDate={setEndDate}
                 onAnalyze={handleAnalyze}
-                onStartLive={handleStartLive}
-                onStopLive={stopLive}
                 loading={loading}
-                isLive={isLive}
             />
 
             {error && (
@@ -132,19 +82,24 @@ export default function App() {
                 </div>
             )}
 
-            {/* Tabs — simple and clear */}
+            {/* Two simple tabs */}
             <div className="view-tabs">
-                {TAB_CONFIG.map(tab => (
-                    <button
-                        key={tab.id}
-                        className={`view-tab ${activeTab === tab.id ? 'active' : ''}`}
-                        onClick={() => setActiveTab(tab.id)}
-                        title={tab.hint}
-                    >
-                        {tab.icon}
-                        <span className="tab-label">{tab.label}</span>
-                    </button>
-                ))}
+                <button
+                    className={`view-tab ${activeTab === 'network' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('network')}
+                    title="See which stocks move together"
+                >
+                    <Share2 size={14} />
+                    <span className="tab-label">Stock Map</span>
+                </button>
+                <button
+                    className={`view-tab ${activeTab === 'portfolio' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('portfolio')}
+                    title="Check your stock mix"
+                >
+                    <Briefcase size={14} />
+                    <span className="tab-label">My Portfolio</span>
+                </button>
             </div>
 
             {/* ── Stock Map Tab ── */}
@@ -165,7 +120,7 @@ export default function App() {
                                     <br />2. Choose how far back to look
                                     <br />3. Click <strong>Analyze Network</strong>
                                     <br /><br />
-                                    <strong>How to read the graph:</strong>
+                                    <strong>Reading the graph:</strong>
                                     <br />• <strong>Bigger circle</strong> = more influential stock
                                     <br />• <strong>Same color</strong> = stocks that move together
                                     <br />• <strong>Lines between them</strong> = they're correlated
@@ -183,7 +138,6 @@ export default function App() {
                                 data={data}
                                 selectedNode={selectedNode}
                                 onSelectNode={handleSelectNode}
-                                isLive={isLive}
                             />
                         )}
 
@@ -198,7 +152,7 @@ export default function App() {
                         )}
                     </div>
 
-                    {/* Sidebar with insights built in */}
+                    {/* Sidebar: Key Findings + Analytics */}
                     <div className="sidebar-wrapper">
                         {data && data.insights && data.insights.length > 0 && (
                             <InsightsPanel insights={data.insights} />
@@ -210,21 +164,6 @@ export default function App() {
                             onSelectNode={handleSelectNode}
                         />
                     </div>
-                </div>
-            )}
-
-            {/* ── Sectors Tab ── */}
-            {activeTab === 'heatmap' && (
-                <div className="tab-content-area">
-                    {!data ? (
-                        <div className="tab-empty-hint">
-                            <Grid3x3 size={28} />
-                            <h3>Sector comparison will appear here</h3>
-                            <p>First, go to the <strong>Stock Map</strong> tab and click <strong>Analyze Network</strong>. Then come back here to see how different sectors (Banking, IT, etc.) relate to each other.</p>
-                        </div>
-                    ) : (
-                        <SectorHeatmap sectorData={data?.sector_heatmap} />
-                    )}
                 </div>
             )}
 

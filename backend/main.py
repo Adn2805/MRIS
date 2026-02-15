@@ -7,7 +7,6 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routes.analysis import router as analysis_router
-from routes.live import router as live_router
 from routes.portfolio import router as portfolio_router
 
 # ── Logging ─────────────────────────────────────────────────────────
@@ -23,7 +22,7 @@ logging.basicConfig(
 app = FastAPI(
     title="MRIS — Market Relationship Intelligence System",
     description="Network analysis and visualization of structural stock market relationships.",
-    version="2.0.0",
+    version="3.0.0",
 )
 
 app.add_middleware(
@@ -35,13 +34,17 @@ app.add_middleware(
 )
 
 app.include_router(analysis_router)
-app.include_router(live_router)
 app.include_router(portfolio_router)
 
 
 @app.get("/")
 async def root():
-    return {"name": "MRIS API", "version": "2.0.0", "status": "operational"}
+    return {"name": "MRIS API", "version": "3.0.0", "status": "operational"}
+
+
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
 
 
 if __name__ == "__main__":

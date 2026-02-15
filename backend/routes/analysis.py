@@ -15,11 +15,10 @@ from fastapi import APIRouter, HTTPException
 from models import (
     AnalysisRequest, GraphResponse, NodeData, EdgeData,
     CentralityMetrics, ClusterInfo, NetworkStats,
-    IndexInfo, IndicesResponse, SectorHeatmapData,
+    IndexInfo, IndicesResponse,
 )
-from config import INDICES, VALID_PERIODS, CACHE_TTL_SECONDS, CACHE_MAX_SIZE, SECTOR_MAP
+from config import INDICES, VALID_PERIODS, CACHE_TTL_SECONDS, CACHE_MAX_SIZE
 from services.insights_generator import generate_insights
-from services.sector_analyzer import compute_sector_heatmap
 from services.data_fetcher import fetch_prices, fetch_prices_by_dates
 from services.preprocessor import compute_log_returns, clean_data
 from services.correlation_engine import compute_correlation_matrix, apply_threshold
@@ -180,14 +179,6 @@ def run_analysis_pipeline(request: AnalysisRequest) -> GraphResponse:
         logger.warning(f"Insights generation failed: {e}")
         insights = []
 
-    # ── Generate sector heatmap ─────────────────────────────────────
-    try:
-        heatmap_raw = compute_sector_heatmap(returns, SECTOR_MAP)
-        sector_heatmap = SectorHeatmapData(**heatmap_raw)
-    except Exception as e:
-        logger.warning(f"Sector heatmap generation failed: {e}")
-        sector_heatmap = None
-
     return GraphResponse(
         nodes=nodes,
         edges=edges,
@@ -200,7 +191,6 @@ def run_analysis_pipeline(request: AnalysisRequest) -> GraphResponse:
         threshold=request.threshold,
         timestamp=datetime.utcnow().isoformat() + "Z",
         insights=insights,
-        sector_heatmap=sector_heatmap,
     )
 
 

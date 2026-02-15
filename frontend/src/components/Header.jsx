@@ -1,17 +1,7 @@
 import React from 'react';
-import { Activity, Radio, HelpCircle } from 'lucide-react';
+import { Activity, HelpCircle } from 'lucide-react';
 
-function formatTimeAgo(date) {
-    if (!date) return '';
-    const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
-    if (seconds < 10) return 'just now';
-    if (seconds < 60) return `${seconds}s ago`;
-    const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `${minutes}m ago`;
-    return `${Math.floor(minutes / 60)}h ago`;
-}
-
-export default function Header({ isLive, lastUpdated, onShowGuide }) {
+export default function Header({ onShowGuide }) {
     return (
         <header className="header">
             <div className="header-brand">
@@ -23,24 +13,8 @@ export default function Header({ isLive, lastUpdated, onShowGuide }) {
             </div>
 
             <div className="header-status">
-                {isLive ? (
-                    <>
-                        <div className="live-badge">
-                            <Radio size={10} />
-                            LIVE
-                        </div>
-                        {lastUpdated && (
-                            <span className="last-updated">
-                                Updated {formatTimeAgo(lastUpdated)}
-                            </span>
-                        )}
-                    </>
-                ) : (
-                    <>
-                        <div className="status-dot" />
-                        <span>Ready</span>
-                    </>
-                )}
+                <div className="status-dot" />
+                <span>Ready</span>
                 <Activity size={12} style={{ marginLeft: 4 }} />
                 <button
                     className="header-help-btn"

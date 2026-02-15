@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Radio, Square, Calendar } from 'lucide-react';
+import { Search, Calendar } from 'lucide-react';
 import { InfoTooltip } from './GuidedTour';
 
 const PERIODS = ['1mo', '3mo', '6mo', '1y'];
@@ -18,10 +18,7 @@ export default function ControlPanel({
     endDate,
     setEndDate,
     onAnalyze,
-    onStartLive,
-    onStopLive,
     loading,
-    isLive,
 }) {
     const [useCustomDates, setUseCustomDates] = useState(false);
 
@@ -35,7 +32,6 @@ export default function ControlPanel({
         setPeriod(null);
     };
 
-    // Beginner-friendly threshold description
     const getThresholdHint = (val) => {
         if (val >= 0.8) return 'Only the strongest connections';
         if (val >= 0.65) return 'Moderate — good starting point';
@@ -55,7 +51,6 @@ export default function ControlPanel({
                     className="control-select"
                     value={selectedIndex}
                     onChange={(e) => setSelectedIndex(e.target.value)}
-                    disabled={isLive}
                 >
                     {indices.map((idx) => (
                         <option key={idx.name} value={idx.name}>
@@ -77,7 +72,6 @@ export default function ControlPanel({
                             key={p}
                             className={`period-btn ${!useCustomDates && period === p ? 'active' : ''}`}
                             onClick={() => handlePeriodClick(p)}
-                            disabled={isLive}
                         >
                             {PERIOD_LABELS[p]}
                         </button>
@@ -85,7 +79,6 @@ export default function ControlPanel({
                     <button
                         className={`period-btn custom-btn ${useCustomDates ? 'active' : ''}`}
                         onClick={handleCustomClick}
-                        disabled={isLive}
                     >
                         <Calendar size={10} style={{ marginRight: 3, verticalAlign: -1 }} />
                         Custom
@@ -101,7 +94,6 @@ export default function ControlPanel({
                         className="control-date"
                         value={startDate}
                         onChange={(e) => setStartDate(e.target.value)}
-                        disabled={isLive}
                     />
                     <span className="date-separator">→</span>
                     <input
@@ -109,7 +101,6 @@ export default function ControlPanel({
                         className="control-date"
                         value={endDate}
                         onChange={(e) => setEndDate(e.target.value)}
-                        disabled={isLive}
                     />
                 </div>
             )}
@@ -129,7 +120,6 @@ export default function ControlPanel({
                         step="0.05"
                         value={threshold}
                         onChange={(e) => setThreshold(parseFloat(e.target.value))}
-                        disabled={isLive}
                     />
                     <span className="threshold-value">{threshold.toFixed(2)}</span>
                 </div>
@@ -140,9 +130,9 @@ export default function ControlPanel({
             <button
                 className="analyze-btn"
                 onClick={onAnalyze}
-                disabled={loading || isLive}
+                disabled={loading}
             >
-                {loading && !isLive ? (
+                {loading ? (
                     <>
                         <div className="btn-spinner" />
                         Building Network…
@@ -154,24 +144,6 @@ export default function ControlPanel({
                     </>
                 )}
             </button>
-
-            {/* Live toggle */}
-            {isLive ? (
-                <button className="live-btn live-btn-active" onClick={onStopLive}>
-                    <Square size={12} />
-                    Stop Live Updates
-                </button>
-            ) : (
-                <button
-                    className="live-btn"
-                    onClick={onStartLive}
-                    disabled={loading}
-                    title="Continuously refresh the network with latest market data"
-                >
-                    <Radio size={12} />
-                    Go Live
-                </button>
-            )}
 
             {/* Quick help */}
             <div className="control-help">

@@ -22,32 +22,37 @@
 
 MRIS is a full-stack web application that visualizes **how stocks in a market index are related to each other** — like a social network, but for stocks.
 
-Instead of looking at stocks one at a time, MRIS shows you the big picture:
-- Which stocks **move together**
-- Which stocks are **independent**
-- How **sectors** relate to each other
-- Whether your **portfolio** is truly diversified
-
-> **Core idea:** If stock A goes up, does stock B also go up? MRIS answers that for every pair of stocks in an index and shows it visually.
+It uses **real stock data** from Yahoo Finance, computes correlations between every pair of stocks, and shows the result as an interactive network graph. Users select an index, choose a time period, and click Analyze to see the relationships.
 
 ---
 
-## Features
+## 3 Core Features
 
-### 📊 Stock Map (Network Graph)
-Interactive force-directed graph powered by D3.js. Each stock is a node — **bigger = more influential**. Same color = they move together. Lines = correlated above your chosen threshold. Click any stock for details.
+### 1. 📊 Stock Map (Interactive Network Graph)
+The main feature. An interactive force-directed graph powered by D3.js that shows stock correlations.
 
-### 🔍 Key Findings (Smart Insights)
-Auto-generated plain-English analysis with priority levels (Critical / High / Medium / Low / Info). Identifies the most influential stock, top power players, market density, strongest connections, and independent stocks.
+- **Bigger circle** = more influential stock
+- **Same color** = stocks that move together (same cluster)
+- **Lines** = stocks are correlated above your chosen threshold
+- **Click any stock** to see its connections, centrality metrics, and influence score
+- **User controls:** Select any supported index, choose time range (1M / 3M / 6M / 1Y / custom dates), adjust connection strength
 
-### 🏢 Sector Comparison (Heatmap)
-Color-coded grid showing how different industry sectors (Banking, IT, Pharma, etc.) correlate with each other. Red = move together, Blue = move apart, Gray = independent.
+### 2. 💡 Key Findings (Smart Insights)
+Auto-generated plain-English analysis of the network, with priority-based labels:
 
-### 💼 Portfolio Checker
-Input your stock tickers, get a **diversification score (0-100)**, risk level, correlation breakdown, and actionable suggestions to improve your portfolio mix.
+- **CRITICAL** — Most influential stock in the network
+- **HIGH** — Top 3 power players, strongest connections
+- **MEDIUM** — Cluster analysis, market density
+- **LOW** — Independent stocks (diversification candidates)
+- **INFO** — Network summary
 
-### ⚡ Live Mode
-Continuously refreshes analysis every 2 minutes with the latest market data using Server-Sent Events (SSE).
+### 3. 💼 Portfolio Checker
+Input your stock tickers to check if your portfolio is truly diversified.
+
+- Get a **diversification score (0-100)**
+- See **risk level** (Low / Moderate / High)
+- View **correlation between your stocks**
+- Receive **actionable suggestions** to improve your mix
 
 ---
 
@@ -69,34 +74,39 @@ Continuously refreshes analysis every 2 minutes with the latest market data usin
 |---|---|
 | Frontend | React 18, Vite, D3.js, Lucide Icons |
 | Backend | Python 3.11, FastAPI, Uvicorn |
-| Data | Yahoo Finance (yfinance) |
-| Math | NumPy, Pandas, NetworkX, python-louvain |
-| Streaming | SSE (sse-starlette) |
+| Data Source | Yahoo Finance (yfinance) — real market data |
+| Math | NumPy, Pandas, NetworkX, python-louvain, SciPy |
 | Deploy | Vercel (frontend) + Render (backend) |
 
 ---
 
-## Architecture
+## How It Works
 
 ```
-User (Browser)
-    │
-    ▼
-┌─── React + D3.js Frontend (Vercel) ───┐
-│  Stock Map │ Sectors │ My Portfolio    │
-└────────────────┬───────────────────────┘
-                 │ REST API
-                 ▼
-┌─── FastAPI Backend (Render) ───────────┐
-│                                        │
-│  Yahoo Finance → Log Returns           │
-│       → Correlation Matrix             │
-│       → Threshold Filter               │
-│       → NetworkX Graph                 │
-│       → Louvain Clustering             │
-│       → Insights + Sector Analysis     │
-│                                        │
-└────────────────────────────────────────┘
+User selects index + time range + connection strength
+                    │
+                    ▼
+    ┌─── FastAPI Backend ──────────────────┐
+    │                                      │
+    │  1. Fetch stock prices (Yahoo)       │
+    │  2. Compute daily log returns        │
+    │  3. Build correlation matrix         │
+    │  4. Filter by threshold              │
+    │  5. Build network graph (NetworkX)   │
+    │  6. Detect clusters (Louvain)        │
+    │  7. Compute centrality & influence   │
+    │  8. Generate insights                │
+    │                                      │
+    └──────────────┬───────────────────────┘
+                   │ JSON response
+                   ▼
+    ┌─── React Frontend ──────────────────┐
+    │                                      │
+    │  D3.js renders interactive graph     │
+    │  Sidebar shows stats & top stocks    │
+    │  Key Findings panel shows insights   │
+    │                                      │
+    └──────────────────────────────────────┘
 ```
 
 ---
@@ -104,44 +114,28 @@ User (Browser)
 ## Getting Started
 
 ### Prerequisites
-- **Node.js** 18+ and npm
-- **Python** 3.11+
+- Node.js 18+ and npm
+- Python 3.11+
 
-### Backend Setup
+### Backend
 
 ```bash
 cd backend
-
-# Create virtual environment
 python -m venv venv
 venv\Scripts\activate        # Windows
 # source venv/bin/activate   # Mac/Linux
-
-# Install dependencies
 pip install -r requirements.txt
-
-# Start the server
-python main.py
+python main.py               # Starts at http://localhost:8000
 ```
 
-The API will be running at `http://localhost:8000`.
-
-### Frontend Setup
+### Frontend
 
 ```bash
 cd frontend
-
-# Install dependencies
 npm install
-
-# Create .env file
 echo VITE_API_URL=http://localhost:8000 > .env
-
-# Start dev server
-npm run dev
+npm run dev                  # Starts at http://localhost:5173
 ```
-
-The app will be running at `http://localhost:5173`.
 
 ---
 
@@ -151,17 +145,8 @@ The app will be running at `http://localhost:5173`.
 |---|---|---|
 | `GET` | `/api/indices` | List available stock indices |
 | `POST` | `/api/analyze` | Run full network analysis |
-| `POST` | `/api/live` | Start live SSE streaming |
 | `POST` | `/api/portfolio/check` | Check portfolio diversification |
 | `GET` | `/health` | Health check |
-
-### Example: Run Analysis
-
-```bash
-curl -X POST http://localhost:8000/api/analyze \
-  -H "Content-Type: application/json" \
-  -d '{"index": "NIFTY 50", "period": "3mo", "threshold": 0.6}'
-```
 
 ---
 
@@ -170,12 +155,11 @@ curl -X POST http://localhost:8000/api/analyze \
 ```
 mris/
 ├── backend/
-│   ├── main.py                  # FastAPI entry point + CORS
-│   ├── config.py                # Index definitions, sector mappings
+│   ├── main.py                  # FastAPI entry point
+│   ├── config.py                # Index definitions, settings
 │   ├── models.py                # Pydantic response models
 │   ├── routes/
-│   │   ├── analysis.py          # Main analysis pipeline
-│   │   ├── live.py              # SSE live streaming
+│   │   ├── analysis.py          # Network analysis pipeline
 │   │   └── portfolio.py         # Portfolio risk checker
 │   └── services/
 │       ├── data_fetcher.py      # Yahoo Finance download
@@ -183,67 +167,43 @@ mris/
 │       ├── correlation_engine.py # Correlation matrix
 │       ├── graph_builder.py     # NetworkX graph + centrality
 │       ├── clustering.py        # Louvain community detection
-│       ├── insights_generator.py # Rule-based insights
-│       └── sector_analyzer.py   # Cross-sector correlations
+│       └── insights_generator.py # Rule-based insights
 │
 └── frontend/
     └── src/
-        ├── App.jsx              # Main app with tab navigation
+        ├── App.jsx              # Main app (2 tabs)
         ├── index.css            # Complete styling
         ├── components/
         │   ├── NetworkGraph.jsx # D3.js force graph
-        │   ├── SectorHeatmap.jsx
         │   ├── PortfolioChecker.jsx
         │   ├── InsightsPanel.jsx
         │   ├── AnalyticsSidebar.jsx
         │   ├── ControlPanel.jsx
         │   ├── NodeInspector.jsx
-        │   ├── GuidedTour.jsx
         │   ├── Header.jsx
+        │   ├── GuidedTour.jsx
         │   └── LoadingOverlay.jsx
-        ├── hooks/
-        │   └── useAnalysis.js   # API integration
-        └── utils/
-            └── colors.js        # Cluster color palette
+        ├── hooks/useAnalysis.js
+        └── utils/colors.js
 ```
 
 ---
 
 ## Methodology
 
-The analysis pipeline uses established techniques from **computational finance** and **network science**:
+Uses established techniques from computational finance:
 
-1. **Log Returns** — Standard method in quantitative finance to normalize daily price changes
-2. **Pearson Correlation** — Measures linear relationship between stock return series
-3. **Threshold Filtering** — Removes noise by keeping only correlations above a user-defined strength
-4. **Graph Construction** — Stocks become nodes, significant correlations become edges with weights
-5. **Centrality Metrics** — Degree, betweenness, and closeness centrality identify influential stocks
-6. **Louvain Community Detection** — Groups stocks into clusters that move together
-7. **Sector Analysis** — Aggregates individual stock correlations into sector-level relationships
-
-This methodology is used in published research by institutions including the European Central Bank, Bank of England, and in academic journals on financial network analysis.
-
----
-
-## Deployment
-
-### Frontend → Vercel
-The frontend auto-deploys from the `frontend/` directory. Set the environment variable:
-```
-VITE_API_URL=https://your-backend.onrender.com
-```
-
-### Backend → Render
-The backend auto-deploys with:
-- **Build command:** `pip install -r requirements.txt`
-- **Start command:** `uvicorn main:app --host 0.0.0.0 --port $PORT`
-- **Runtime:** Python 3.11.0 (specified in `runtime.txt`)
+1. **Log Returns** — Standard normalization of daily price changes
+2. **Pearson Correlation** — Measures linear relationship between stock returns
+3. **Threshold Filtering** — Keeps only significant correlations (user-adjustable)
+4. **Louvain Community Detection** — Groups stocks that move together
+5. **Centrality Metrics** — Degree, betweenness, closeness to identify influential stocks
 
 ---
 
 ## License
 
-This project is open source and available under the [MIT License](LICENSE).
+MIT License
 
 ---
 
