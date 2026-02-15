@@ -5,7 +5,7 @@
     "rewrites": [
         {
             "source": "/api/:path*",
-            "destination": "https://YOUR_RENDER_URL.onrender.com/api/:path*"
+            "destination": "https://mris-backend-dcu5.onrender.com/api/:path*"
         }
     ]
 }
