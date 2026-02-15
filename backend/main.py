@@ -8,6 +8,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routes.analysis import router as analysis_router
 from routes.live import router as live_router
+from routes.portfolio import router as portfolio_router
 
 # ── Logging ─────────────────────────────────────────────────────────
 
@@ -35,6 +36,7 @@ app.add_middleware(
 
 app.include_router(analysis_router)
 app.include_router(live_router)
+app.include_router(portfolio_router)
 
 
 @app.get("/")

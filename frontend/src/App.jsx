@@ -4,10 +4,13 @@ import ControlPanel from './components/ControlPanel';
 import NetworkGraph from './components/NetworkGraph';
 import NodeInspector from './components/NodeInspector';
 import AnalyticsSidebar from './components/AnalyticsSidebar';
+import InsightsPanel from './components/InsightsPanel';
+import SectorHeatmap from './components/SectorHeatmap';
+import PortfolioChecker from './components/PortfolioChecker';
 import LoadingOverlay from './components/LoadingOverlay';
 import GuidedTour from './components/GuidedTour';
 import { useAnalysis } from './hooks/useAnalysis';
-import { Network, AlertCircle, HelpCircle } from 'lucide-react';
+import { Network, AlertCircle, HelpCircle, BarChart3, Grid3x3, Briefcase } from 'lucide-react';
 
 export default function App() {
     const {
@@ -23,6 +26,7 @@ export default function App() {
     const [selectedNode, setSelectedNode] = useState(null);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     const [showTour, setShowTour] = useState(() => !localStorage.getItem('mris_tour_done'));
+    const [activeTab, setActiveTab] = useState('network');
 
     // Keep lastUpdated ticking for the header display
     const [, setTick] = useState(0);
@@ -107,58 +111,107 @@ export default function App() {
                 </div>
             )}
 
-            <div className="app-body">
-                <div className="main-content">
-                    {!data && !loading && (
-                        <div className="empty-state">
-                            <div className="empty-icon">
-                                <Network size={32} />
-                            </div>
-                            <div className="empty-title">See How Stocks Are Connected</div>
-                            <div className="empty-description">
-                                This tool shows which stocks move together in the market — like a social network for stocks.
-                                <br /><br />
-                                <strong>3 easy steps:</strong>
-                                <br />1️⃣ Pick a stock group (like NIFTY 50 or S&P 500)
-                                <br />2️⃣ Choose a time range
-                                <br />3️⃣ Click <strong>Analyze Network</strong>
-                                <br /><br />
-                                Bigger circles = more influential stocks. Same color = stocks that move together.
-                            </div>
-                            <button className="tour-relaunch" onClick={() => setShowTour(true)}>
-                                <HelpCircle size={14} />
-                                Show me how it works
-                            </button>
-                        </div>
-                    )}
-
-                    {data && (
-                        <NetworkGraph
-                            data={data}
-                            selectedNode={selectedNode}
-                            onSelectNode={handleSelectNode}
-                            isLive={isLive}
-                        />
-                    )}
-
-                    {loading && !data && <LoadingOverlay />}
-
-                    {selectedNode && data && (
-                        <NodeInspector
-                            node={selectedNode}
-                            edges={data.edges}
-                            onClose={() => setSelectedNode(null)}
-                        />
-                    )}
-                </div>
-
-                <AnalyticsSidebar
-                    data={data}
-                    collapsed={sidebarCollapsed}
-                    onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-                    onSelectNode={handleSelectNode}
-                />
+            {/* Tabs */}
+            <div className="view-tabs">
+                <button
+                    className={`view-tab ${activeTab === 'network' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('network')}
+                >
+                    <BarChart3 size={15} />
+                    Network Graph
+                </button>
+                <button
+                    className={`view-tab ${activeTab === 'heatmap' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('heatmap')}
+                >
+                    <Grid3x3 size={15} />
+                    Sector Heatmap
+                </button>
+                <button
+                    className={`view-tab ${activeTab === 'portfolio' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('portfolio')}
+                >
+                    <Briefcase size={15} />
+                    Portfolio Checker
+                </button>
             </div>
+
+            {/* Network Tab */}
+            {activeTab === 'network' && (
+                <>
+                    {/* Insights panel - shows above graph when data is available */}
+                    {data && data.insights && (
+                        <InsightsPanel insights={data.insights} />
+                    )}
+
+                    <div className="app-body">
+                        <div className="main-content">
+                            {!data && !loading && (
+                                <div className="empty-state">
+                                    <div className="empty-icon">
+                                        <Network size={32} />
+                                    </div>
+                                    <div className="empty-title">See How Stocks Are Connected</div>
+                                    <div className="empty-description">
+                                        This tool shows which stocks move together in the market — like a social network for stocks.
+                                        <br /><br />
+                                        <strong>3 easy steps:</strong>
+                                        <br />1️⃣ Pick a stock group (like NIFTY 50 or S&P 500)
+                                        <br />2️⃣ Choose a time range
+                                        <br />3️⃣ Click <strong>Analyze Network</strong>
+                                        <br /><br />
+                                        Bigger circles = more influential stocks. Same color = stocks that move together.
+                                    </div>
+                                    <button className="tour-relaunch" onClick={() => setShowTour(true)}>
+                                        <HelpCircle size={14} />
+                                        Show me how it works
+                                    </button>
+                                </div>
+                            )}
+
+                            {data && (
+                                <NetworkGraph
+                                    data={data}
+                                    selectedNode={selectedNode}
+                                    onSelectNode={handleSelectNode}
+                                    isLive={isLive}
+                                />
+                            )}
+
+                            {loading && !data && <LoadingOverlay />}
+
+                            {selectedNode && data && (
+                                <NodeInspector
+                                    node={selectedNode}
+                                    edges={data.edges}
+                                    onClose={() => setSelectedNode(null)}
+                                />
+                            )}
+                        </div>
+
+                        <AnalyticsSidebar
+                            data={data}
+                            collapsed={sidebarCollapsed}
+                            onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+                            onSelectNode={handleSelectNode}
+                        />
+                    </div>
+                </>
+            )}
+
+            {/* Heatmap Tab */}
+            {activeTab === 'heatmap' && (
+                <div className="tab-content-area">
+                    <SectorHeatmap sectorData={data?.sector_heatmap} />
+                </div>
+            )}
+
+            {/* Portfolio Tab */}
+            {activeTab === 'portfolio' && (
+                <div className="tab-content-area">
+                    <PortfolioChecker />
+                </div>
+            )}
         </div>
     );
 }
