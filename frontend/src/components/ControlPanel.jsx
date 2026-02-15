@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Search, Radio, Square, Calendar } from 'lucide-react';
+import { InfoTooltip } from './GuidedTour';
 
 const PERIODS = ['1mo', '3mo', '6mo', '1y'];
 const PERIOD_LABELS = { '1mo': '1M', '3mo': '3M', '6mo': '6M', '1y': '1Y' };
@@ -34,11 +35,22 @@ export default function ControlPanel({
         setPeriod(null);
     };
 
+    // Beginner-friendly threshold description
+    const getThresholdHint = (val) => {
+        if (val >= 0.8) return 'Only the strongest connections';
+        if (val >= 0.65) return 'Moderate — good starting point';
+        if (val >= 0.5) return 'Showing weaker connections too';
+        return 'Very loose — lots of connections';
+    };
+
     return (
         <div className="control-panel">
             {/* Index selector */}
             <div className="control-group">
-                <span className="control-label">Index</span>
+                <span className="control-label">
+                    Stock Group
+                    <InfoTooltip text="A collection of top stocks from a country's market. Pick the one you want to explore." />
+                </span>
                 <select
                     className="control-select"
                     value={selectedIndex}
@@ -47,7 +59,7 @@ export default function ControlPanel({
                 >
                     {indices.map((idx) => (
                         <option key={idx.name} value={idx.name}>
-                            {idx.name} ({idx.stock_count})
+                            {idx.name} ({idx.stock_count} stocks)
                         </option>
                     ))}
                 </select>
@@ -55,7 +67,10 @@ export default function ControlPanel({
 
             {/* Period buttons */}
             <div className="control-group">
-                <span className="control-label">Period</span>
+                <span className="control-label">
+                    Time Range
+                    <InfoTooltip text="How far back to look. Longer periods reveal more stable patterns between stocks." />
+                </span>
                 <div className="period-group">
                     {PERIODS.map((p) => (
                         <button
@@ -101,7 +116,10 @@ export default function ControlPanel({
 
             {/* Threshold slider */}
             <div className="control-group">
-                <span className="control-label">Threshold</span>
+                <span className="control-label">
+                    Connection Strength
+                    <InfoTooltip text="Controls how strong the relationship between two stocks must be to show a connection. Higher = fewer but stronger links." />
+                </span>
                 <div className="threshold-control">
                     <input
                         type="range"
@@ -115,6 +133,7 @@ export default function ControlPanel({
                     />
                     <span className="threshold-value">{threshold.toFixed(2)}</span>
                 </div>
+                <span className="threshold-hint">{getThresholdHint(threshold)}</span>
             </div>
 
             {/* Analyze button */}
@@ -126,12 +145,12 @@ export default function ControlPanel({
                 {loading && !isLive ? (
                     <>
                         <div className="btn-spinner" />
-                        Analyzing…
+                        Building Network…
                     </>
                 ) : (
                     <>
                         <Search size={14} />
-                        Analyze
+                        Analyze Network
                     </>
                 )}
             </button>
@@ -140,18 +159,24 @@ export default function ControlPanel({
             {isLive ? (
                 <button className="live-btn live-btn-active" onClick={onStopLive}>
                     <Square size={12} />
-                    Stop Live
+                    Stop Live Updates
                 </button>
             ) : (
                 <button
                     className="live-btn"
                     onClick={onStartLive}
                     disabled={loading}
+                    title="Continuously refresh the network with latest market data"
                 >
                     <Radio size={12} />
                     Go Live
                 </button>
             )}
+
+            {/* Quick help */}
+            <div className="control-help">
+                💡 Click <strong>Analyze Network</strong> to see how stocks are connected. Bigger circles = more influential stocks.
+            </div>
         </div>
     );
 }

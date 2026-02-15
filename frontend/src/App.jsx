@@ -5,8 +5,9 @@ import NetworkGraph from './components/NetworkGraph';
 import NodeInspector from './components/NodeInspector';
 import AnalyticsSidebar from './components/AnalyticsSidebar';
 import LoadingOverlay from './components/LoadingOverlay';
+import GuidedTour from './components/GuidedTour';
 import { useAnalysis } from './hooks/useAnalysis';
-import { Network, AlertCircle } from 'lucide-react';
+import { Network, AlertCircle, HelpCircle } from 'lucide-react';
 
 export default function App() {
     const {
@@ -21,6 +22,7 @@ export default function App() {
     const [endDate, setEndDate] = useState('');
     const [selectedNode, setSelectedNode] = useState(null);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+    const [showTour, setShowTour] = useState(() => !localStorage.getItem('mris_tour_done'));
 
     // Keep lastUpdated ticking for the header display
     const [, setTick] = useState(0);
@@ -75,7 +77,9 @@ export default function App() {
         <div className="app-layout">
             <div className="bg-grid" />
 
-            <Header isLive={isLive} lastUpdated={lastUpdated} />
+            {showTour && <GuidedTour onClose={() => setShowTour(false)} />}
+
+            <Header isLive={isLive} lastUpdated={lastUpdated} onShowGuide={() => setShowTour(true)} />
 
             <ControlPanel
                 indices={indices}
@@ -110,12 +114,21 @@ export default function App() {
                             <div className="empty-icon">
                                 <Network size={32} />
                             </div>
-                            <div className="empty-title">Market Network Explorer</div>
+                            <div className="empty-title">See How Stocks Are Connected</div>
                             <div className="empty-description">
-                                Select a stock index, configure your parameters, and click
-                                <strong> Analyze</strong> for a one-time analysis or
-                                <strong> Go Live</strong> for real-time streaming updates.
+                                This tool shows which stocks move together in the market — like a social network for stocks.
+                                <br /><br />
+                                <strong>3 easy steps:</strong>
+                                <br />1️⃣ Pick a stock group (like NIFTY 50 or S&P 500)
+                                <br />2️⃣ Choose a time range
+                                <br />3️⃣ Click <strong>Analyze Network</strong>
+                                <br /><br />
+                                Bigger circles = more influential stocks. Same color = stocks that move together.
                             </div>
+                            <button className="tour-relaunch" onClick={() => setShowTour(true)}>
+                                <HelpCircle size={14} />
+                                Show me how it works
+                            </button>
                         </div>
                     )}
 

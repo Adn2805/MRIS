@@ -1,5 +1,5 @@
 import React from 'react';
-import { Activity, Radio } from 'lucide-react';
+import { Activity, Radio, HelpCircle } from 'lucide-react';
 
 function formatTimeAgo(date) {
     if (!date) return '';
@@ -11,7 +11,7 @@ function formatTimeAgo(date) {
     return `${Math.floor(minutes / 60)}h ago`;
 }
 
-export default function Header({ isLive, lastUpdated }) {
+export default function Header({ isLive, lastUpdated, onShowGuide }) {
     return (
         <header className="header">
             <div className="header-brand">
@@ -38,10 +38,17 @@ export default function Header({ isLive, lastUpdated }) {
                 ) : (
                     <>
                         <div className="status-dot" />
-                        <span>System Online</span>
+                        <span>Ready</span>
                     </>
                 )}
                 <Activity size={12} style={{ marginLeft: 4 }} />
+                <button
+                    className="header-help-btn"
+                    onClick={onShowGuide}
+                    title="Show the guided tour"
+                >
+                    <HelpCircle size={14} />
+                </button>
             </div>
         </header>
     );

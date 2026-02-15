@@ -1,6 +1,7 @@
 import React from 'react';
 import { ChevronRight, ChevronLeft, BarChart3, Network, Layers } from 'lucide-react';
 import { getClusterColor } from '../utils/colors';
+import { InfoTooltip } from './GuidedTour';
 
 export default function AnalyticsSidebar({ data, collapsed, onToggle, onSelectNode }) {
     if (!data) return null;
@@ -8,6 +9,13 @@ export default function AnalyticsSidebar({ data, collapsed, onToggle, onSelectNo
     const { nodes, stats, clusters } = data;
     const topInfluencers = nodes.slice(0, 10);
     const maxScore = topInfluencers.length > 0 ? topInfluencers[0].influence_score : 1;
+
+    // Density explanation
+    const getDensityDesc = (d) => {
+        if (d >= 0.5) return 'Highly connected market';
+        if (d >= 0.2) return 'Moderately connected';
+        return 'Loosely connected';
+    };
 
     return (
         <>
@@ -25,35 +33,37 @@ export default function AnalyticsSidebar({ data, collapsed, onToggle, onSelectNo
                     <div className="section-header">
                         <span className="section-title">
                             <Network size={11} style={{ marginRight: 4, verticalAlign: -1 }} />
-                            Network Stats
+                            Network Overview
+                            <InfoTooltip text="Summary statistics about the stock network you're viewing." />
                         </span>
                     </div>
                     <div className="stats-grid">
-                        <div className="stat-card">
+                        <div className="stat-card" title="Total number of stocks in this network">
                             <div className="stat-value">{stats.total_nodes}</div>
-                            <div className="stat-label">Nodes</div>
+                            <div className="stat-label">Stocks</div>
                         </div>
-                        <div className="stat-card">
+                        <div className="stat-card" title="Number of connections between stocks">
                             <div className="stat-value">{stats.total_edges}</div>
-                            <div className="stat-label">Edges</div>
+                            <div className="stat-label">Links</div>
                         </div>
-                        <div className="stat-card">
+                        <div className="stat-card" title="How interconnected the network is (0 = none, 1 = fully connected)">
                             <div className="stat-value">{stats.density.toFixed(3)}</div>
                             <div className="stat-label">Density</div>
                         </div>
-                        <div className="stat-card">
+                        <div className="stat-card" title="Average number of connections per stock">
                             <div className="stat-value">{stats.avg_degree.toFixed(1)}</div>
-                            <div className="stat-label">Avg Degree</div>
+                            <div className="stat-label">Avg Links</div>
                         </div>
-                        <div className="stat-card">
+                        <div className="stat-card" title="How well the stocks separate into distinct groups (higher = clearer groups)">
                             <div className="stat-value">{stats.modularity.toFixed(3)}</div>
-                            <div className="stat-label">Modularity</div>
+                            <div className="stat-label">Grouping</div>
                         </div>
-                        <div className="stat-card">
+                        <div className="stat-card" title="Number of distinct groups of related stocks found">
                             <div className="stat-value">{stats.num_clusters}</div>
-                            <div className="stat-label">Clusters</div>
+                            <div className="stat-label">Groups</div>
                         </div>
                     </div>
+                    <p className="section-hint">{getDensityDesc(stats.density)}</p>
                 </div>
 
                 {/* Clusters */}
@@ -61,7 +71,8 @@ export default function AnalyticsSidebar({ data, collapsed, onToggle, onSelectNo
                     <div className="section-header">
                         <span className="section-title">
                             <Layers size={11} style={{ marginRight: 4, verticalAlign: -1 }} />
-                            Clusters
+                            Stock Groups
+                            <InfoTooltip text="Stocks that move together are grouped by color. Each group often represents stocks from the same industry sector." />
                         </span>
                         <span className="section-badge">{clusters.length}</span>
                     </div>
@@ -83,7 +94,8 @@ export default function AnalyticsSidebar({ data, collapsed, onToggle, onSelectNo
                     <div className="section-header">
                         <span className="section-title">
                             <BarChart3 size={11} style={{ marginRight: 4, verticalAlign: -1 }} />
-                            Top Influencers
+                            Most Connected Stocks
+                            <InfoTooltip text="These stocks have the most connections in the network, making them the most influential. Click any stock to see its details." />
                         </span>
                         <span className="section-badge">Top 10</span>
                     </div>
