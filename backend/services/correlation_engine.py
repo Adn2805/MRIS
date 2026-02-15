@@ -40,17 +40,20 @@ def apply_threshold(
     Returns:
         Filtered adjacency matrix (symmetric, 0-diagonal)
     """
-    adj_matrix = corr_matrix.copy()
+    # Create a fully writable numpy copy to avoid read-only array issues
+    values = corr_matrix.to_numpy(copy=True).astype(float)
 
-    # Use absolute correlation for threshold, but keep sign info via weight
-    mask = adj_matrix.abs() < threshold
-    adj_matrix[mask] = 0.0
+    # Zero out correlations below threshold
+    abs_values = np.abs(values)
+    values[abs_values < threshold] = 0.0
 
-    # Remove self-loops
-    diag = adj_matrix.to_numpy(copy=False)
-    np.fill_diagonal(diag, 0.0)
+    # Remove self-loops (diagonal)
+    np.fill_diagonal(values, 0.0)
 
-    edge_count = (adj_matrix != 0).sum().sum() // 2  # Symmetric, so divide by 2
+    # Reconstruct DataFrame
+    adj_matrix = pd.DataFrame(values, index=corr_matrix.index, columns=corr_matrix.columns)
+
+    edge_count = int((adj_matrix != 0).sum().sum()) // 2
     logger.info(
         f"Threshold {threshold} applied: {edge_count} edges retained"
     )
