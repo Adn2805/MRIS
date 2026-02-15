@@ -50,6 +50,11 @@ class NetworkStats(BaseModel):
     num_clusters: int
 
 
+class InsightItem(BaseModel):
+    priority: str = Field(..., description="Priority level: critical, high, medium, low, info")
+    text: str = Field(..., description="Insight text with optional **bold** markers")
+
+
 class SectorHeatmapData(BaseModel):
     sectors: list[str]
     matrix: list[list[float]]
@@ -67,7 +72,7 @@ class GraphResponse(BaseModel):
     end_date: Optional[str] = None
     threshold: float
     timestamp: str = Field(..., description="ISO timestamp of when the analysis was computed")
-    insights: list[str] = Field(default_factory=list, description="Auto-generated market insights")
+    insights: list[InsightItem] = Field(default_factory=list, description="Auto-generated market insights")
     sector_heatmap: Optional[SectorHeatmapData] = None
 
 
